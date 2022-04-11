@@ -161,6 +161,7 @@ def combine_crop(img, dimension, temp=False):
     step_size = 32
     #print(img.shape)
     combining = np.zeros(shape=dimension)
+    counter = np.zeros(shape=dimension)
 
     for ii in range(math.ceil((dimension[1]-window_size)/step_size)+1):
         for jj in range(math.ceil((dimension[0]-window_size)/step_size)+1):
@@ -184,34 +185,9 @@ def combine_crop(img, dimension, temp=False):
 
             #print(jj+(ii*(math.ceil((dimension[1]-window_size)/step_size)+1)))
             combining[start_1:end_1, start_2:end_2, ...] = combining[start_1:end_1, start_2:end_2, ...] + img[jj+(ii*(math.ceil((dimension[0]-window_size)/step_size)+1)), ...]
-            if ii==0 and jj!=0:
-                if jj==(math.ceil((dimension[0]-window_size)/step_size)+1-1):
-                    combining[start_1:(dimension[0]-(dimension[0]-window_size)%step_size), start_2:end_2, ...] /= 2
-                else:
-                    combining[start_1:(start_1+window_size-step_size), start_2:end_2, ...] /= 2
-            elif ii!=0 and jj!=0:
-                if jj==(math.ceil((dimension[0]-window_size)/step_size)+1-1):
-                    combining[start_1:(dimension[0]-(dimension[0]-window_size)%step_size), start_2:end_2, ...] /= 2
-                    if ii==(math.ceil((dimension[1]-window_size)/step_size)+1-1):
-                        combining[(dimension[0]-(dimension[0]-window_size)%step_size):end_1, start_2:(dimension[1]-(dimension[1]-window_size)%step_size), ...] /= 2
-                    else:
-                        combining[(dimension[0]-(dimension[0]-window_size)%step_size):end_1, start_2:(start_2+window_size-step_size), ...] /= 2
-                else:
-                    combining[start_1:(start_1+window_size-step_size), start_2:end_2, ...] /= 2
-                    if ii==(math.ceil((dimension[1]-window_size)/step_size)+1-1):
-                        combining[(end_1-step_size):end_1, start_2:(dimension[1]-(dimension[1]-window_size)%step_size), ...] /= 2
-                    else:
-                        combining[(end_1-step_size):end_1, start_2:(start_2+window_size-step_size), ...] /= 2
-            elif ii!=0 and jj==0:
-                if ii==(math.ceil((dimension[1]-window_size)/step_size)+1-1):
-                    combining[start_1:end_1, start_2:(dimension[1]-(dimension[1]-window_size)%step_size), ...] /= 2
-                else:
-                    combining[start_1:end_1, start_2:(start_2+window_size-step_size), ...] /= 2
-            """
-            combining[128:240, 0:128] = img[1, 16:128,0:128]
-            combining[0:128, 128:240] = img[2, 0:128, 16:128]
-            combining[128:240, 128:240] = img[3, 16:128, 16:128]
-            """
+            counter[start_1:end_1, start_2:end_2, ...] += 1
+            
+    combining = np.divide(combining, counter)
     return combining
 
 def view_generator(generator, model, multiview):
