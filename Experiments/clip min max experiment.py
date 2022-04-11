@@ -1,10 +1,3 @@
-# multimodality reason example: image 10 (BraTS20_Training_010), slice 91.
-# "D:\BMED4010\model\\09 U-net test 7\\training_1\cp-0009.ckpt" acceptable performance (let Vick see see)
-# "D:\BMED4010\model\\10 U-net test 8\\training_3\cp-0008.ckpt" or any other things in training 2 are ok. Pick some see see later
-#229/229 - 159s - loss: 0.0854 - accuracy: 0.9876 - 159s/epoch - 693ms/step [0.08543605357408524, 0.9875937700271606]
-#mask --> 0, 2, 4, 1 (0: background, 1: tumour core)
-
-
 import os
 from re import S, X
 import zipfile
@@ -156,12 +149,8 @@ def process_both(xpath, ypath, xskip, yskip, skip_rate, cropping, skip_size):
     for ii in xpath:
         xvolume.append(read_nifti_file(ii))
     xvolume = np.array(xvolume)
-    xvolume = np.swapaxes(xvolume,1,-1)
-    xvolume = np.swapaxes(xvolume,1,2) 
     
     yvolume = read_nifti_file(ypath)
-    yvolume = np.swapaxes(yvolume,0,-1)
-    yvolume = np.swapaxes(yvolume,0,1)
 
     for ii in range(xvolume.shape[-1]-1, -1, -1):      
                 
