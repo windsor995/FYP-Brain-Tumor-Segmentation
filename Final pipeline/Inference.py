@@ -138,7 +138,7 @@ def create_mask(pred_mask):
     #return pred_mask
     
     temp = np.zeros([240,240,155])
-    threshold = 0.99
+    threshold = 0.5
     temp[pred_mask[...,1]>=threshold] = 1
     temp[pred_mask[...,1]<threshold] = 0
 
@@ -186,7 +186,14 @@ def combine_crop(img, dimension, temp=False):
             #print(jj+(ii*(math.ceil((dimension[1]-window_size)/step_size)+1)))
             combining[start_1:end_1, start_2:end_2, ...] = combining[start_1:end_1, start_2:end_2, ...] + img[jj+(ii*(math.ceil((dimension[0]-window_size)/step_size)+1)), ...]
             counter[start_1:end_1, start_2:end_2, ...] += 1
+
             
+            """
+            combining[128:240, 0:128] = img[1, 16:128,0:128]
+            combining[0:128, 128:240] = img[2, 0:128, 16:128]
+            combining[128:240, 128:240] = img[3, 16:128, 16:128]
+            """
+    
     combining = np.divide(combining, counter)
     return combining
 
@@ -302,7 +309,7 @@ def moving_window_crop(img):
 
 def data_generator(index, skip_all_zero_mask = True, skip_all_zero_image = False, skip_rate = 100, augmentation = False, cropping = False, multiview = 0):
 
-    file_path = 'D:\BMED4010\dataset\BRATS2020\MICCAI_BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData'
+    file_path = 'D:\BMED4010\dataset\BRATS2020\MICCAI_BraTS2020_ValidationData\MICCAI_BraTS2020_ValidationData'
 
     flair_paths = [
         os.path.join(file_path, x, x+"_flair.nii.gz")
@@ -372,7 +379,7 @@ low_val_index = [263, 294, 269, 259, 304, 306, 324, 312, 309, 287, 326, 329, 277
 
 def BraTS_val_gen(multiview):
     
-    index = high_val_index+low_val_index
+    index = list(range(90, 125))#high_val_index+low_val_index
     
     return data_generator(index, skip_all_zero_mask = True, skip_rate = 93, augmentation = True, multiview=multiview)   
 
@@ -439,17 +446,15 @@ gen_4_axial = BraTS_val_gen(multiview=0)
 gen_4_coronal = BraTS_val_gen(multiview=2)
 gen_4_sagittal = BraTS_val_gen(multiview=1)
 
-index = high_val_index+low_val_index
+for ii in range(90, 125):
 
-for ii in range(len(index)):
-
-    file_path = 'D:\BMED4010\dataset\BRATS2020\MICCAI_BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData'
+    file_path = 'D:\BMED4010\dataset\BRATS2020\MICCAI_BraTS2020_ValidationData\MICCAI_BraTS2020_ValidationData'
     flair_paths = [
         os.path.join(file_path, x, x+"_flair.nii.gz")
         for x in os.listdir(file_path)
     ]
 
-    scan = nib.load(flair_paths[index[ii]])
+    scan = nib.load(flair_paths[ii])
     
     #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -460,7 +465,7 @@ for ii in range(len(index)):
 
     result_241 = (result_241_axial + result_241_coronal + result_241_sagittal)/3
     result_241 = create_mask(result_241)
-    result_241 = connected_components_3D(result_241, threshold_min=0, threshold_max=200, threshold_dist=25)
+    result_241 = connected_components_3D(result_241, threshold_min=0, threshold_max=200, threshold_dist=20)
 
     result_241_axial = None
     result_241_coronal = None
@@ -499,10 +504,10 @@ for ii in range(len(index)):
     final[result_241==1] = 2
     final[np.logical_and(final, result_41)==True] = 1
     final[np.logical_and(final, result_4)==True] = 4
-
-    if (final==4).size<=200:
-        final[final==4] = 1
     
+    if (np.bincount(final.flatten(), minlength = 5)[4])<=200:        
+        final[final==4] = 1
+
     result_241 = None
     result_41 = None
     result_4 = None
@@ -516,20 +521,10 @@ for ii in range(len(index)):
     volume.header['sform_code'] = scan.header['sform_code']
 
     
-    file_path = "D:\\BMED4010\\upload validation\\05 final 3 validation set version\\"
-    ID = str(index[ii]+1).zfill(3)
-    nib.save(volume, file_path+"BraTS20_Training_"+ID+".nii.gz")
+    file_path = "D:\\BMED4010\\upload validation\\08 final 5\\"
+    ID = str(ii+1).zfill(3)
+    nib.save(volume, file_path+"BraTS20_Validation_"+ID+".nii.gz")
 
     final = None
 
     #----------------------------------------------------------------------------------------------------------------------------------------------------------------
-"""
-
-a = BraTS_val_gen(0)
-
-b = next(a)
-print('hi')
-print(type(b))
-print(b.shape)
-
-"""
